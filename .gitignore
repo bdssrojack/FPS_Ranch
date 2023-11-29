@@ -1,0 +1,9 @@
+/.idea
+
+# ignore files with extension '.exe'
+*.exe
+*.data
+*.json
+
+prog
+project

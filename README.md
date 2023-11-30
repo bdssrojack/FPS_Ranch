@@ -14,7 +14,7 @@
 * Did you collaborate or share ideas with any other students/TAs/Professors?
 * Did you use any external resources? 
   * Note it is fair to utilize some tutorials--cite them here. You **must** add your own personal touch however!
-  * Starter code of A
+  * Starter code of A11
   * *edit this*
   * *edit this*
   * (Optional) What was the most interesting part of the Final Assignment? How could the instructor improve the final project?

@@ -37,7 +37,7 @@ class SDLGraphicsProgram{
 public:
 
     // Constructor
-    SDLGraphicsProgram(int w, int h);
+    SDLGraphicsProgram();
     // Destructor
     ~SDLGraphicsProgram();
     // Setup OpenGL

@@ -11,13 +11,14 @@
 // Initialization function
 // Returns a true or false value based on successful completion of setup.
 // Takes in dimensions of window.
-SDLGraphicsProgram::SDLGraphicsProgram(int w, int h) {
+SDLGraphicsProgram::SDLGraphicsProgram() {
     // Initialization flag
     bool success = true;
     // String to hold any errors that occur.
     std::stringstream errorStream;
     // The window we'll be rendering to
     m_window = NULL;
+    int screenWidth = 0, screenHeight = 0;
 
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -32,13 +33,24 @@ SDLGraphicsProgram::SDLGraphicsProgram(int w, int h) {
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
+        // Get the screen width and height for full screen
+        SDL_DisplayMode currentDisplayMode;
+        if (SDL_GetDesktopDisplayMode(0, &currentDisplayMode) == 0) {
+            screenWidth = currentDisplayMode.w;
+            screenHeight = currentDisplayMode.h;
+        } else {
+            // Fall back to a default resolution if getting display mode fails
+            screenWidth = 1920; // Change to your desired width
+            screenHeight = 1080; // Change to your desired height
+        }
+
         //Create window
-        m_window = SDL_CreateWindow("Lab",
+        m_window = SDL_CreateWindow("Training Range",
                                     SDL_WINDOWPOS_UNDEFINED,
                                     SDL_WINDOWPOS_UNDEFINED,
-                                    w,
-                                    h,
-                                    SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+                                    screenWidth,
+                                    screenHeight,
+                                    SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN);
 
         // Check if Window did not create.
         if (m_window == NULL) {
@@ -78,9 +90,12 @@ SDLGraphicsProgram::SDLGraphicsProgram(int w, int h) {
     // SDL_LogSetAllPriority(SDL_LOG_PRIORITY_WARN); // Uncomment to enable extra debug support!
     GetOpenGLVersionInfo();
 
+    // Set relative mode
+    SDL_WarpMouseInWindow(m_window, screenWidth / 2, screenHeight / 2);
+    SDL_SetRelativeMouseMode(SDL_TRUE);
 
     // Setup our Renderer
-    m_renderer = new Renderer(w, h);
+    m_renderer = new Renderer(screenWidth, screenHeight);
 }
 
 
@@ -157,13 +172,9 @@ void SDLGraphicsProgram::Loop() {
     SDL_StartTextInput();
 
     // Set the camera speed for how fast we move.
-    float cameraSpeed = 0.05f;
+    float cameraSpeed = 0.5f;
     bool sprint = false;
-    int windowWidth, windowHeight;
-    SDL_GetWindowSize(m_window, &windowWidth, &windowHeight);
-    int mouseX = windowWidth / 2, mouseY = windowHeight / 2;
-    SDL_WarpMouseInWindow(m_window, windowWidth / 2, windowHeight / 2);
-    SDL_SetRelativeMouseMode(SDL_TRUE);
+    int mouseX = 0, mouseY = 0;
 
     // While application is running
     while (!quit) {

@@ -1,6 +1,7 @@
 # Run with: python3 build.py
 import os
 import platform
+import subprocess
 
 # (1)==================== COMMON CONFIGURATION OPTIONS ======================= #
 COMPILER="g++ -std=c++17"   # The compiler we want to use 
@@ -41,7 +42,13 @@ print("Compilng on: "+platform.system())
 print(compileString)
 print("========================================================================")
 # Run our command
-os.system(compileString)
+exit_code = os.system(compileString)
+if exit_code == 0:
+    try:
+        subprocess.run(["./"+EXECUTABLE])
+    except FileNotFoundError:
+        print("Executable ./%s not found.", EXECUTABLE)
+exit(0 if exit_code==0 else 1)
 # ========================= Building the Executable ========================== #
 
 

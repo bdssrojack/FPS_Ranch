@@ -110,15 +110,6 @@ bool SDLGraphicsProgram::InitGL(){
 	return success;
 }
 
-// ====================== Create the planets =============
-// NOTE: I will admit it is a little lazy to have these as globals,
-//       we could build on our ObjectManager structure to manage the
-//       each object that is inserted and automatically create a 'SceneNode'
-//       for it for example. Or otherwise, build a 'SceneTree' class that
-//       manages creating nodes and setting their type.
-//       (e.g. A good use of the Factory Design Pattern if you'd like to
-//             invetigate further--but it is beyond the scope of this assignment).
-
 // Create the Sun
 Object* sphere;
 SceneNode* Sun;
@@ -167,7 +158,19 @@ void SDLGraphicsProgram::Loop(){
     SDL_StartTextInput();
 
     // Set the camera speed for how fast we move.
-    float cameraSpeed = 5.0f;
+    float cameraSpeed = 0.05f;
+    bool sprint = false;
+    int windowWidth, windowHeight;
+    SDL_GetWindowSize(m_window, &windowWidth, &windowHeight);
+    int mouseX = windowWidth/2, mouseY = windowHeight/2;
+    // SDL_Cursor *cursor; /* Make this variable visible in the point
+    //                    where you exit the program */
+    // int32_t cursorData[2] = {0, 0};
+    // cursor = SDL_CreateCursor((Uint8 *)cursorData, (Uint8 *)cursorData, 8, 8, 4, 4);
+    // SDL_SetCursor(cursor);
+    // SDL_SetWindowGrab(m_window, SDL_TRUE);
+    // SDL_ShowCursor(SDL_DISABLE);
+    // SDL_SetRelativeMouseMode(SDL_TRUE);
 
     // While application is running
     while(!quit){
@@ -176,42 +179,41 @@ void SDLGraphicsProgram::Loop(){
         while(SDL_PollEvent( &e ) != 0){
             // User posts an event to quit
             // An example is hitting the "x" in the corner of the window.
-            if(e.type == SDL_QUIT){
+            if(e.type == SDL_QUIT || (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE)){
                 quit = true;
             }
             // Handle keyboard input for the camera class
             if(e.type==SDL_MOUSEMOTION){
                 // Handle mouse movements
-                int mouseX = e.motion.x;
-                int mouseY = e.motion.y;
-//              m_renderer->GetCamera(0)->MouseLook(mouseX, mouseY);
-            }
-            switch(e.type){
-                // Handle keyboard presses
-                case SDL_KEYDOWN:
-                    switch(e.key.keysym.sym){
-                        case SDLK_LEFT:
-                            m_renderer->GetCamera(0)->MoveLeft(cameraSpeed);
-                            break;
-                        case SDLK_RIGHT:
-                            m_renderer->GetCamera(0)->MoveRight(cameraSpeed);
-                            break;
-                        case SDLK_UP:
-                            m_renderer->GetCamera(0)->MoveForward(cameraSpeed);
-                            break;
-                        case SDLK_DOWN:
-                            m_renderer->GetCamera(0)->MoveBackward(cameraSpeed);
-                            break;
-                        case SDLK_RSHIFT:
-                            m_renderer->GetCamera(0)->MoveUp(cameraSpeed);
-                            break;
-                        case SDLK_RCTRL:
-                            m_renderer->GetCamera(0)->MoveDown(cameraSpeed);
-                            break;
-                    }
-                break;
+                 mouseX += e.motion.xrel;
+                 mouseY += e.motion.yrel;
+                m_renderer->GetCamera(0)->MouseLook(mouseX, mouseY);
+                // SDL_WarpMouseInWindow(m_window, windowWidth/2, windowHeight/2);
             }
         } // End SDL_PollEvent loop.
+
+        const Uint8 *keyboardState = SDL_GetKeyboardState(NULL);
+        if (keyboardState[SDL_SCANCODE_W]) {
+            m_renderer->GetCamera(0)->MoveForward(cameraSpeed);        
+        } else if (keyboardState[SDL_SCANCODE_S]) {
+            m_renderer->GetCamera(0)->MoveBackward(cameraSpeed);
+        } 
+
+        if (keyboardState[SDL_SCANCODE_A]) {
+            m_renderer->GetCamera(0)->MoveLeft(cameraSpeed);
+        } else if (keyboardState[SDL_SCANCODE_D]) {
+            m_renderer->GetCamera(0)->MoveRight(cameraSpeed);
+        } 
+        
+        if (keyboardState[SDL_SCANCODE_SPACE]) {
+            //TODO: jump
+        }
+        if (keyboardState[SDL_SCANCODE_LSHIFT]) {
+            //TODO: sprint
+        } 
+        if (keyboardState[SDL_SCANCODE_LCTRL]) {
+            //TODO: crouch
+        }
 
         // ================== Use the planets ===============
         Sun->GetLocalTransform().LoadIdentity();
@@ -245,7 +247,7 @@ void SDLGraphicsProgram::Loop(){
         // Render our scene using our selected renderer
         m_renderer->Render();
         // Delay to slow things down just a bit!
-        SDL_Delay(25);  // TODO: You can change this or implement a frame
+        // SDL_Delay(25);  // TODO: You can change this or implement a frame
                         // independent movement method if you like.
       	//Update screen of our specified window
       	SDL_GL_SwapWindow(GetSDLWindow());
@@ -255,6 +257,7 @@ void SDLGraphicsProgram::Loop(){
     SDL_StopTextInput();
     //Free memory
     delete Sun;
+    // SDL_FreeCursor(cursor);
 }
 
 

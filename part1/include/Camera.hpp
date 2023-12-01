@@ -41,8 +41,10 @@ public:
     float GetViewYDirection();
     // Returns the Z 'view' direction
     float GetViewZDirection();
-private:
+    // Set boundary
+    void SetBoundary(float x, float z);
 
+private:
     // Track the old mouse position
     glm::vec2 m_oldMousePosition;
     // Where is our camera positioned
@@ -54,6 +56,10 @@ private:
     // to 'rock' or 'rattle' the camera you might play
     // with modifying this value.
     glm::vec3 m_upVector;
+    // boundary of the eyeposition
+    float m_xBound, m_zBound;
+    // Check whether the position is inside boundary
+    bool inBoundary(glm::vec3 position);
 };
 
 

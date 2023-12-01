@@ -165,6 +165,7 @@ void SDLGraphicsProgram::Loop() {
 
     // Set a default position for our camera
     m_renderer->GetCamera(0)->SetCameraEyePosition(len/2.0f, 0.5f, len/2.0f);
+    m_renderer->GetCamera(0)->SetBoundary(len-1, len-1);
 
     // Main loop flag
     // If this is quit = 'true' then the program terminates.
@@ -262,7 +263,8 @@ void SDLGraphicsProgram::Loop() {
     //Disable text input
     SDL_StopTextInput();
     //Free memory
-    delete Sun;
+    delete FloorNode;
+    delete this;
 }
 
 

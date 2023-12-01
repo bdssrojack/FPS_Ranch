@@ -43,7 +43,8 @@ void Camera::MoveForward(float speed){
     // Move in the speed
     direction = direction * speed;
     // Update the position
-    m_eyePosition += direction;
+    if(inBoundary(m_eyePosition + direction))
+        m_eyePosition += direction;
 }
 
 void Camera::MoveBackward(float speed){
@@ -52,7 +53,8 @@ void Camera::MoveBackward(float speed){
     // Move in the speed
     direction = direction * speed;
     // Update the position
-    m_eyePosition -= direction;
+    if(inBoundary(m_eyePosition - direction))
+        m_eyePosition -= direction;
 }
 
 void Camera::MoveLeft(float speed){
@@ -63,7 +65,8 @@ void Camera::MoveLeft(float speed){
     // Update the speed
     direction = direction * speed;
     // Update the eye position
-    m_eyePosition -= direction;
+    if(inBoundary(m_eyePosition - direction))
+        m_eyePosition -= direction;
 }
 
 void Camera::MoveRight(float speed){
@@ -74,7 +77,8 @@ void Camera::MoveRight(float speed){
     // Update the speed
     direction = direction * speed;
     // Update the eye position
-    m_eyePosition += direction;
+    if(inBoundary(m_eyePosition+direction))
+        m_eyePosition += direction;
 }
 
 void Camera::MoveUp(float speed){
@@ -134,4 +138,16 @@ glm::mat4 Camera::GetWorldToViewmatrix() const{
     return glm::lookAt( m_eyePosition,
                         m_eyePosition + m_viewDirection,
                         m_upVector);
+}
+
+bool Camera::inBoundary(glm::vec3 position) {
+    return position.x >= 0 && 
+            position.z >= 0 && 
+            position.x <= m_xBound && 
+            position.z <= m_zBound;
+}
+
+void Camera::SetBoundary(float x, float z) {
+    m_xBound = x;
+    m_zBound = z;
 }

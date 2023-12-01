@@ -127,18 +127,22 @@ bool SDLGraphicsProgram::InitGL() {
 // Create the Sun
 Object *sphere;
 SceneNode *Sun;
-// ====================== Create the planets =============
 
 //Loops forever!
 void SDLGraphicsProgram::Loop() {
 
-    // ================== Initialize the planets ===============
     static float rotate = 0.0f;
+    static int len = 50;
+
+    Terrain *Floor = new Terrain(len, len, "./assets/textures/grass.ppm");
+    SceneNode *FloorNode = new SceneNode(Floor);
 
     // Create the Sun
     sphere = new Sphere();
     sphere->LoadTexture("./assets/textures/sun.ppm");
     Sun = new SceneNode(sphere);
+
+    FloorNode->AddChild(Sun);
 
     // Create Earth and Moon
     for (int i = 0; i < 3; i++) {
@@ -157,10 +161,10 @@ void SDLGraphicsProgram::Loop() {
     }
 
     // Render our scene starting from the sun.
-    m_renderer->setRoot(Sun);
+    m_renderer->setRoot(FloorNode);
 
     // Set a default position for our camera
-    m_renderer->GetCamera(0)->SetCameraEyePosition(0.0f, 0.0f, 20.0f);
+    m_renderer->GetCamera(0)->SetCameraEyePosition(len/2.0f, 0.5f, len/2.0f);
 
     // Main loop flag
     // If this is quit = 'true' then the program terminates.
@@ -172,7 +176,7 @@ void SDLGraphicsProgram::Loop() {
     SDL_StartTextInput();
 
     // Set the camera speed for how fast we move.
-    float cameraSpeed = 0.5f;
+    float cameraSpeed = 0.25f;
     bool sprint = false;
     int mouseX = 0, mouseY = 0;
 

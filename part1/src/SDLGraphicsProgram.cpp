@@ -50,7 +50,7 @@ SDLGraphicsProgram::SDLGraphicsProgram() {
                                     SDL_WINDOWPOS_UNDEFINED,
                                     screenWidth,
                                     screenHeight,
-                                    SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN);
+                                    SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN | SDL_WINDOW_INPUT_GRABBED);
 
         // Check if Window did not create.
         if (m_window == NULL) {

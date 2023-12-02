@@ -3,6 +3,7 @@
 #include "Terrain.hpp"
 #include "Sphere.hpp"
 #include "Texture.hpp"
+#include "Sound.hpp"
 
 #include <iostream>
 #include <string>
@@ -15,8 +16,12 @@ int SCREEN_WIDTH = 0, SCREEN_HEIGHT = 0;
 int CROSSHAIR_WIDTH = 3, CROSSHAIR_HEIGHT = 3;
 int RANCH_SCALE = 50;
 
+Sound *gunshot;
+
 void fire() {
-    
+    gunshot->stop();
+    gunshot->play();
+    SDL_Log("Fire!!!");
 }
 
 void genTargets(SceneNode *root) {
@@ -72,15 +77,15 @@ SDLGraphicsProgram::SDLGraphicsProgram() {
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
         // Get the screen width and height for full screen
-        SDL_DisplayMode currentDisplayMode;
-        if (SDL_GetDesktopDisplayMode(0, &currentDisplayMode) == 0) {
-            SCREEN_WIDTH = currentDisplayMode.w;
-            SCREEN_HEIGHT = currentDisplayMode.h;
-        } else {
+        // SDL_DisplayMode currentDisplayMode;
+        // if (SDL_GetDesktopDisplayMode(0, &currentDisplayMode) == 0) {
+        //     SCREEN_WIDTH = currentDisplayMode.w;
+        //     SCREEN_HEIGHT = currentDisplayMode.h;
+        // } else {
             // Fall back to a default resolution if getting display mode fails
             SCREEN_WIDTH = 1920; // Change to your desired width
             SCREEN_HEIGHT = 1080; // Change to your desired height
-        }
+        // }
 
         //Create window
         m_window = SDL_CreateWindow("Training Range",
@@ -88,7 +93,8 @@ SDLGraphicsProgram::SDLGraphicsProgram() {
                                     SDL_WINDOWPOS_UNDEFINED,
                                     SCREEN_WIDTH,
                                     SCREEN_HEIGHT,
-                                    SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN | SDL_WINDOW_INPUT_GRABBED);
+                                    // SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN | SDL_WINDOW_INPUT_GRABBED);
+                                    SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_INPUT_GRABBED);
 
         // Check if Window did not create.
         if (m_window == NULL) {
@@ -134,6 +140,10 @@ SDLGraphicsProgram::SDLGraphicsProgram() {
 
     // Setup our Renderer
     m_renderer = new Renderer(SCREEN_WIDTH, SCREEN_HEIGHT);
+
+    // Setup gunfire sound
+    gunshot = new Sound("./assets/sounds/gun-gunshot-01.wav");
+    gunshot->setupDevice();
 }
 
 
@@ -267,6 +277,7 @@ void SDLGraphicsProgram::Loop() {
     SDL_StopTextInput();
     //Free memory
     delete FloorNode;
+    delete gunshot;
     delete this;
 }
 
@@ -287,8 +298,9 @@ void SDLGraphicsProgram::GetOpenGLVersionInfo() {
 
 void SDLGraphicsProgram::DrawCrosshair(SceneNode *crosshairNode) {
     glDisable(GL_DEPTH_TEST);
+    glBindTexture(GL_TEXTURE_2D, 0);
 
-    float scale_factor = 5.0f;
+    float scale_factor = 10.0f;
 
     crosshairNode->GetLocalTransform().LoadIdentity();
 
@@ -297,9 +309,8 @@ void SDLGraphicsProgram::DrawCrosshair(SceneNode *crosshairNode) {
 
     glm::mat4 identityMatrix = glm::mat4(1.0f);
     crosshairNode->m_shader.SetUniformMatrix4fv("view", &identityMatrix[0][0]);
-    crosshairNode->m_shader.SetUniformMatrix4fv("model", &identityMatrix[0][0]);
     crosshairNode->m_shader.SetUniformMatrix4fv("projection", &glm::ortho(-(SCREEN_WIDTH / scale_factor), SCREEN_WIDTH / scale_factor, SCREEN_HEIGHT / scale_factor, -(SCREEN_HEIGHT / scale_factor), -1000.0f, 1000.0f)[0][0]);
-    crosshairNode->m_shader.SetUniform3f("lightColor",0.0f,0.0f,0.0f);
+    // crosshairNode->m_shader.SetUniform3f("lightColor",1.0f,0.0f,0.0f);
     crosshairNode->Draw();
     
     glEnable(GL_DEPTH_TEST);

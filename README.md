@@ -15,9 +15,9 @@
 * Did you use any external resources? 
   * Note it is fair to utilize some tutorials--cite them here. You **must** add your own personal touch however!
   * Starter code of A11
+  * [SDL Audio API tutorial](https://www.youtube.com/watch?v=hZ0TGCUcY2g)
   * *edit this*
-  * *edit this*
-  * (Optional) What was the most interesting part of the Final Assignment? How could the instructor improve the final project?
+* (Optional) What was the most interesting part of the Final Assignment? How could the instructor improve the final project?
 
 ### Rubric
 

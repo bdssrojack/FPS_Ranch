@@ -2,11 +2,15 @@
 #include "Camera.hpp"
 #include "Terrain.hpp"
 #include "Sphere.hpp"
+#include "Texture.hpp"
 
 #include <iostream>
 #include <string>
 #include <sstream>
 #include <fstream>
+
+int SCREEN_WIDTH = 0, SCREEN_HEIGHT = 0;
+int CROSSHAIR_WIDTH = 3, CROSSHAIR_HEIGHT = 3;
 
 // Initialization function
 // Returns a true or false value based on successful completion of setup.
@@ -18,7 +22,7 @@ SDLGraphicsProgram::SDLGraphicsProgram() {
     std::stringstream errorStream;
     // The window we'll be rendering to
     m_window = NULL;
-    int screenWidth = 0, screenHeight = 0;
+    
 
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -36,20 +40,20 @@ SDLGraphicsProgram::SDLGraphicsProgram() {
         // Get the screen width and height for full screen
         SDL_DisplayMode currentDisplayMode;
         if (SDL_GetDesktopDisplayMode(0, &currentDisplayMode) == 0) {
-            screenWidth = currentDisplayMode.w;
-            screenHeight = currentDisplayMode.h;
+            SCREEN_WIDTH = currentDisplayMode.w;
+            SCREEN_HEIGHT = currentDisplayMode.h;
         } else {
             // Fall back to a default resolution if getting display mode fails
-            screenWidth = 1920; // Change to your desired width
-            screenHeight = 1080; // Change to your desired height
+            SCREEN_WIDTH = 1920; // Change to your desired width
+            SCREEN_HEIGHT = 1080; // Change to your desired height
         }
 
         //Create window
         m_window = SDL_CreateWindow("Training Range",
                                     SDL_WINDOWPOS_UNDEFINED,
                                     SDL_WINDOWPOS_UNDEFINED,
-                                    screenWidth,
-                                    screenHeight,
+                                    SCREEN_WIDTH,
+                                    SCREEN_HEIGHT,
                                     SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN | SDL_WINDOW_INPUT_GRABBED);
 
         // Check if Window did not create.
@@ -91,11 +95,11 @@ SDLGraphicsProgram::SDLGraphicsProgram() {
     GetOpenGLVersionInfo();
 
     // Set relative mode
-    SDL_WarpMouseInWindow(m_window, screenWidth / 2, screenHeight / 2);
+    SDL_WarpMouseInWindow(m_window, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
     // Setup our Renderer
-    m_renderer = new Renderer(screenWidth, screenHeight);
+    m_renderer = new Renderer(SCREEN_WIDTH, SCREEN_HEIGHT);
 }
 
 
@@ -104,8 +108,8 @@ SDLGraphicsProgram::~SDLGraphicsProgram() {
     if (m_renderer != nullptr) {
         delete m_renderer;
     }
-
-
+    //Destroy context
+    SDL_GL_DeleteContext(m_openGLContext);
     //Destroy window
     SDL_DestroyWindow(m_window);
     // Point m_window to NULL to ensure it points to nothing.
@@ -133,6 +137,10 @@ void SDLGraphicsProgram::Loop() {
 
     static float rotate = 0.0f;
     static int len = 50;
+
+    Object *crosshair = new Sphere();
+    // crosshair->LoadTexture("./assets/textures/cat3");
+    SceneNode *crosshairNode = new SceneNode(crosshair);
 
     Terrain *Floor = new Terrain(len, len, "./assets/textures/grass.ppm");
     SceneNode *FloorNode = new SceneNode(Floor);
@@ -256,6 +264,7 @@ void SDLGraphicsProgram::Loop() {
         // Delay to slow things down just a bit!
         // SDL_Delay(25);  // TODO: You can change this or implement a frame
         // independent movement method if you like.
+        DrawCrosshair(crosshairNode);
         //Update screen of our specified window
         SDL_GL_SwapWindow(GetSDLWindow());
         rotate += 0.02f;
@@ -280,4 +289,24 @@ void SDLGraphicsProgram::GetOpenGLVersionInfo() {
     SDL_Log("Renderer: %s", (const char *) glGetString(GL_RENDERER));
     SDL_Log("Version: %s", (const char *) glGetString(GL_VERSION));
     SDL_Log("Shading language: %s", (const char *) glGetString(GL_SHADING_LANGUAGE_VERSION));
+}
+
+void SDLGraphicsProgram::DrawCrosshair(SceneNode *crosshairNode) {
+    glDisable(GL_DEPTH_TEST);
+
+    float scale_factor = 5.0f;
+
+    crosshairNode->GetLocalTransform().LoadIdentity();
+
+    glm::mat4 projectionMatrix = glm::perspective(glm::radians(45.0f),((float)SCREEN_WIDTH)/((float)SCREEN_HEIGHT),0.0f,512.0f);
+    crosshairNode->Update(projectionMatrix, m_renderer->GetCamera(0));
+
+    glm::mat4 identityMatrix = glm::mat4(1.0f);
+    crosshairNode->m_shader.SetUniformMatrix4fv("view", &identityMatrix[0][0]);
+    crosshairNode->m_shader.SetUniformMatrix4fv("model", &identityMatrix[0][0]);
+    crosshairNode->m_shader.SetUniformMatrix4fv("projection", &glm::ortho(-(SCREEN_WIDTH / scale_factor), SCREEN_WIDTH / scale_factor, SCREEN_HEIGHT / scale_factor, -(SCREEN_HEIGHT / scale_factor), -1000.0f, 1000.0f)[0][0]);
+
+    crosshairNode->Draw();
+    
+    glEnable(GL_DEPTH_TEST);
 }

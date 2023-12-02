@@ -92,6 +92,10 @@ void SceneNode::Update(glm::mat4 projectionMatrix, Camera* camera){
                                camera->GetEyeXPosition() + camera->GetViewXDirection(),
                                camera->GetEyeYPosition() + camera->GetViewYDirection(),
                                camera->GetEyeZPosition() + camera->GetViewZDirection());
+		m_shader.SetUniform3f("viewPos",
+								camera->GetEyeXPosition(),
+								camera->GetEyeYPosition(),
+								camera->GetEyeZPosition());
         m_shader.SetUniform1f("ambientIntensity",0.5f);
 	
 		// Iterate through all of the children

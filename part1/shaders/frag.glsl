@@ -5,9 +5,8 @@
 // Our light sources
 uniform vec3 lightColor;
 uniform vec3 lightPos;
+uniform vec3 viewPos;
 uniform float ambientIntensity;
-// Used for our specular highlights
-uniform mat4 view;
 // If we have texture coordinates, they are stored in this sampler.
 uniform sampler2D u_DiffuseMap; 
 
@@ -47,8 +46,7 @@ void main()
     vec3 diffuseLight = diffImpact * lightColor;
 
     // (3) Compute Specular lighting
-    vec3 viewPos = vec3(0.0,0.0,0.0);
-    vec3 viewDir = normalize(viewPos - FragPos);
+    vec3 viewDir = normalize(viewPos - FragPos); 
     vec3 reflectDir = reflect(-lightDir, norm);
 
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);

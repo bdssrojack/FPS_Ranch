@@ -57,6 +57,8 @@ private:
     SDL_Window* m_window ;
     // OpenGL context
     SDL_GLContext m_openGLContext;
+    // draw a crosshair on the center of screen
+    void DrawCrosshair(SceneNode *crosshairNode);
 };
 
 #endif

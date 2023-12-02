@@ -8,9 +8,43 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <bits/stdc++.h>
+#include <vector>
 
 int SCREEN_WIDTH = 0, SCREEN_HEIGHT = 0;
 int CROSSHAIR_WIDTH = 3, CROSSHAIR_HEIGHT = 3;
+int RANCH_SCALE = 50;
+
+void fire() {
+    
+}
+
+void genTargets(SceneNode *root) {
+    // Create targets
+    std::vector<SceneNode*> children = root->GetChildren();
+    for(int i = 0; i < children.size(); i++)
+        delete children[i];
+    
+    for (int i = 0; i < 30; i++) {
+        Object *sphere = new Sphere();
+        sphere->LoadTexture("./assets/textures/sun.ppm");
+        SceneNode *target = new SceneNode(sphere);
+        target->GetLocalTransform().LoadIdentity();
+        target->GetLocalTransform().Translate(rand()%RANCH_SCALE, rand()%10, rand()%RANCH_SCALE);
+        target->GetLocalTransform().Scale(0.5f, 0.5f,0.5f);
+        root->AddChild(target);
+    }
+}
+
+void refreshTargets(SceneNode* root){
+    std::vector<SceneNode*> children = root->GetChildren();
+    for(int i = 0; i < children.size(); i++){
+        SceneNode *target = children[i];
+        target->GetLocalTransform().LoadIdentity();
+        target->GetLocalTransform().Translate(rand()%RANCH_SCALE, rand()%10, rand()%RANCH_SCALE);
+        target->GetLocalTransform().Scale(0.5f, 0.5f,0.5f);
+    }
+}
 
 // Initialization function
 // Returns a true or false value based on successful completion of setup.
@@ -25,7 +59,7 @@ SDLGraphicsProgram::SDLGraphicsProgram() {
     
 
     // Initialize SDL
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
         errorStream << "SDL could not initialize! SDL Error: " << SDL_GetError() << "\n";
         success = false;
     } else {
@@ -128,52 +162,29 @@ bool SDLGraphicsProgram::InitGL() {
     return success;
 }
 
-// Create the Sun
-Object *sphere;
-SceneNode *Sun;
-
 //Loops forever!
 void SDLGraphicsProgram::Loop() {
 
-    static float rotate = 0.0f;
-    static int len = 50;
+    srand(time(0));
 
+    static float rotate = 0.0f;
+
+    // Create crosshair
     Object *crosshair = new Sphere();
-    // crosshair->LoadTexture("./assets/textures/cat3");
     SceneNode *crosshairNode = new SceneNode(crosshair);
 
-    Terrain *Floor = new Terrain(len, len, "./assets/textures/grass.ppm");
+    // Create floor
+    Terrain *Floor = new Terrain(RANCH_SCALE, RANCH_SCALE, "./assets/textures/grass.ppm");
     SceneNode *FloorNode = new SceneNode(Floor);
 
-    // Create the Sun
-    sphere = new Sphere();
-    sphere->LoadTexture("./assets/textures/sun.ppm");
-    Sun = new SceneNode(sphere);
-
-    FloorNode->AddChild(Sun);
-
-    // Create Earth and Moon
-    for (int i = 0; i < 3; i++) {
-        Object *sphereEarth = new Sphere();
-        sphereEarth->LoadTexture("./assets/textures/earth.ppm");
-        SceneNode *Earth = new SceneNode(sphereEarth);
-        Sun->AddChild(Earth);
-
-        for (int j = 0; j < 2; j++) {
-            Object *sphereMoon = new Sphere();
-            sphereMoon->LoadTexture("./assets/textures/rock.ppm");
-            // Create a new node using sphere3 as the geometry
-            SceneNode *Moon = new SceneNode(sphereMoon);
-            Earth->AddChild(Moon);
-        }
-    }
+    genTargets(FloorNode);
 
     // Render our scene starting from the sun.
     m_renderer->setRoot(FloorNode);
 
     // Set a default position for our camera
-    m_renderer->GetCamera(0)->SetCameraEyePosition(len/2.0f, 0.5f, len/2.0f);
-    m_renderer->GetCamera(0)->SetBoundary(len-1, len-1);
+    m_renderer->GetCamera(0)->SetCameraEyePosition(RANCH_SCALE/2.0f, 0.5f, RANCH_SCALE/2.0f);
+    m_renderer->GetCamera(0)->SetBoundary(RANCH_SCALE-1, RANCH_SCALE-1);
 
     // Main loop flag
     // If this is quit = 'true' then the program terminates.
@@ -205,6 +216,10 @@ void SDLGraphicsProgram::Loop() {
                 mouseY += e.motion.yrel;
                 m_renderer->GetCamera(0)->MouseLook(mouseX, mouseY);
             }
+            if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {
+                // left click -- fire
+                fire();
+            }
         } // End SDL_PollEvent loop.
 
         const Uint8 *keyboardState = SDL_GetKeyboardState(NULL);
@@ -229,33 +244,12 @@ void SDLGraphicsProgram::Loop() {
         if (keyboardState[SDL_SCANCODE_LCTRL]) {
             //TODO: crouch
         }
-
-        // ================== Use the planets ===============
-        Sun->GetLocalTransform().LoadIdentity();
-        // ... transform the Sun
-        Sun->GetLocalTransform().Rotate(rotate, 0.0f, 0.0f, 1.0f);
-
-        std::vector < SceneNode * > Earths = Sun->GetChildren();
-        for (int i = 0; i < Earths.size(); i++) {
-            SceneNode *Earth = Earths[i];
-            Earth->GetLocalTransform().LoadIdentity();
-            // ... transform the Earth
-            Earth->GetLocalTransform().Translate(5.0f * i + 5.0f, 0.0f, 0.0f);
-            Earth->GetLocalTransform().Scale(0.5f, 0.5f, 0.5f);
-            Earth->GetLocalTransform().Rotate(rotate, 0.0f, 0.0f, 1.0f);
-
-            std::vector < SceneNode * > Moons = Earth->GetChildren();
-            float p = -1.0f;
-            for (int j = 0; j < Moons.size(); j++) {
-                SceneNode *Moon = Moons[j];
-                Moon->GetLocalTransform().LoadIdentity();
-                // ... transform the Moon
-                Moon->GetLocalTransform().Translate(2.0f * p, 0.0f, 0.0f);
-                Moon->GetLocalTransform().Scale(0.3f, 0.3f, 0.3f);
-                Moon->GetLocalTransform().Rotate(rotate, 0.0f, 0.0f, 1.0f);
-                p *= -1.0f;
-            }
+        if(keyboardState[SDL_SCANCODE_R]) {
+            SDL_Delay(100);
+            refreshTargets(FloorNode);
         }
+
+        FloorNode->GetLocalTransform().LoadIdentity();
 
         // Update our scene through our renderer
         m_renderer->Update();
@@ -305,7 +299,7 @@ void SDLGraphicsProgram::DrawCrosshair(SceneNode *crosshairNode) {
     crosshairNode->m_shader.SetUniformMatrix4fv("view", &identityMatrix[0][0]);
     crosshairNode->m_shader.SetUniformMatrix4fv("model", &identityMatrix[0][0]);
     crosshairNode->m_shader.SetUniformMatrix4fv("projection", &glm::ortho(-(SCREEN_WIDTH / scale_factor), SCREEN_WIDTH / scale_factor, SCREEN_HEIGHT / scale_factor, -(SCREEN_HEIGHT / scale_factor), -1000.0f, 1000.0f)[0][0]);
-
+    crosshairNode->m_shader.SetUniform3f("lightColor",0.0f,0.0f,0.0f);
     crosshairNode->Draw();
     
     glEnable(GL_DEPTH_TEST);

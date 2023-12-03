@@ -13,15 +13,34 @@
 #include <vector>
 
 int SCREEN_WIDTH = 0, SCREEN_HEIGHT = 0;
-int CROSSHAIR_WIDTH = 3, CROSSHAIR_HEIGHT = 3;
-int RANCH_SCALE = 50;
+int RANCH_SCALE = 30;
+int TARGET_NUM = 20;
 
 Sound *gunshot;
 
-void fire() {
-    gunshot->stop();
+void fire(SceneNode *root, Camera *camera) {
     gunshot->play();
-    SDL_Log("Fire!!!");
+    // hitscan
+    std::vector<SceneNode*> children = root->GetChildren();
+    for(int i = 0; i < children.size(); i++){
+        SceneNode *target = children[i];
+        if(target->m_centerCoord.y < 0)
+            continue;
+        
+        if(target->isHit(camera)){
+            SDL_Log("target %u is hit", i);
+            target->GetLocalTransform().LoadIdentity();
+            target->GetLocalTransform().Translate(10.0f, -10.0f, 10.0f);
+            target->m_centerCoord = glm::vec3(10.0f, -10.0f, 10.0f);
+        }
+    }
+}
+
+void randomTranslate(SceneNode* node) {
+    node->GetLocalTransform().LoadIdentity();
+    float centerX = rand()%RANCH_SCALE, centerY = rand()%10, centerZ = rand()%RANCH_SCALE;
+    node->m_centerCoord = glm::vec3(centerX, centerY, centerZ);
+    node->GetLocalTransform().Translate(centerX, centerY, centerZ);
 }
 
 void genTargets(SceneNode *root) {
@@ -30,13 +49,11 @@ void genTargets(SceneNode *root) {
     for(int i = 0; i < children.size(); i++)
         delete children[i];
     
-    for (int i = 0; i < 30; i++) {
+    for (int i = 0; i < TARGET_NUM; i++) {
         Object *sphere = new Sphere();
         sphere->LoadTexture("./assets/textures/sun.ppm");
         SceneNode *target = new SceneNode(sphere);
-        target->GetLocalTransform().LoadIdentity();
-        target->GetLocalTransform().Translate(rand()%RANCH_SCALE, rand()%10, rand()%RANCH_SCALE);
-        target->GetLocalTransform().Scale(0.5f, 0.5f,0.5f);
+        randomTranslate(target);
         root->AddChild(target);
     }
 }
@@ -44,10 +61,7 @@ void genTargets(SceneNode *root) {
 void refreshTargets(SceneNode* root){
     std::vector<SceneNode*> children = root->GetChildren();
     for(int i = 0; i < children.size(); i++){
-        SceneNode *target = children[i];
-        target->GetLocalTransform().LoadIdentity();
-        target->GetLocalTransform().Translate(rand()%RANCH_SCALE, rand()%10, rand()%RANCH_SCALE);
-        target->GetLocalTransform().Scale(0.5f, 0.5f,0.5f);
+        randomTranslate(children[i]);
     }
 }
 
@@ -77,15 +91,15 @@ SDLGraphicsProgram::SDLGraphicsProgram() {
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
         // Get the screen width and height for full screen
-        // SDL_DisplayMode currentDisplayMode;
-        // if (SDL_GetDesktopDisplayMode(0, &currentDisplayMode) == 0) {
-        //     SCREEN_WIDTH = currentDisplayMode.w;
-        //     SCREEN_HEIGHT = currentDisplayMode.h;
-        // } else {
+        SDL_DisplayMode currentDisplayMode;
+        if (SDL_GetDesktopDisplayMode(0, &currentDisplayMode) == 0) {
+            SCREEN_WIDTH = currentDisplayMode.w;
+            SCREEN_HEIGHT = currentDisplayMode.h;
+        } else {
             // Fall back to a default resolution if getting display mode fails
             SCREEN_WIDTH = 1920; // Change to your desired width
             SCREEN_HEIGHT = 1080; // Change to your desired height
-        // }
+        }
 
         //Create window
         m_window = SDL_CreateWindow("Training Range",
@@ -206,7 +220,7 @@ void SDLGraphicsProgram::Loop() {
     SDL_StartTextInput();
 
     // Set the camera speed for how fast we move.
-    float cameraSpeed = 0.25f;
+    float cameraSpeed = 0.1f;
     bool sprint = false;
     int mouseX = 0, mouseY = 0;
 
@@ -228,7 +242,7 @@ void SDLGraphicsProgram::Loop() {
             }
             if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {
                 // left click -- fire
-                fire();
+                fire(FloorNode, m_renderer->GetCamera(0));
             }
         } // End SDL_PollEvent loop.
 
@@ -296,11 +310,12 @@ void SDLGraphicsProgram::GetOpenGLVersionInfo() {
     SDL_Log("Shading language: %s", (const char *) glGetString(GL_SHADING_LANGUAGE_VERSION));
 }
 
+// TODO: make this work for all HUD elements
 void SDLGraphicsProgram::DrawCrosshair(SceneNode *crosshairNode) {
     glDisable(GL_DEPTH_TEST);
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    float scale_factor = 10.0f;
+    float scale_factor = 5.0f;
 
     crosshairNode->GetLocalTransform().LoadIdentity();
 

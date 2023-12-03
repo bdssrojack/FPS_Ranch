@@ -151,3 +151,12 @@ void Camera::SetBoundary(float x, float z) {
     m_xBound = x;
     m_zBound = z;
 }
+
+
+glm::vec3 Camera::GetEyePosition() {
+    return m_eyePosition;
+}
+
+glm::vec3 Camera::GetViewDirection() {
+    return m_viewDirection;
+}

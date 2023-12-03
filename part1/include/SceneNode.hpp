@@ -17,6 +17,7 @@
 #include "Transform.hpp"
 #include "Camera.hpp"
 #include "Shader.hpp"
+#include "Constants.hpp"
 
 #include "glm/vec3.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -46,6 +47,10 @@ public:
     Shader m_shader;
     // Return children
     std::vector<SceneNode*> GetChildren();
+    // center coordinate of object geometry
+    glm::vec3 m_centerCoord;
+    // hit scan
+    bool isHit(Camera *camera);
     
     // NOTE: Protected members are accessible by anything
     // that we inherit from, as well as ?

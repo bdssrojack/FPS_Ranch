@@ -9,6 +9,7 @@
  */
 #include "VertexBufferLayout.hpp"
 #include "Geometry.hpp"
+#include "Constants.hpp"
 #include <cmath>
 
 class Sphere : public Object{
@@ -32,10 +33,8 @@ Sphere::Sphere(){
 // back to your algebra days and equation of a circle! (And some trig with
 // how sin and cos work
 void Sphere::Init(){
-    unsigned int latitudeBands = 30;
-    unsigned int longitudeBands = 30;
-    float radius = 1.0f;
-    double PI = 3.14159265359;
+    unsigned int latitudeBands = 20;
+    unsigned int longitudeBands = 20;
 
         for(unsigned int latNumber = 0; latNumber <= latitudeBands; latNumber++){
             float theta = latNumber * PI / latitudeBands;
@@ -55,7 +54,7 @@ void Sphere::Init(){
                 float v = 1 - ((float)latNumber / (float)latitudeBands);
 
                 // Setup geometry
-                m_geometry.AddVertex(radius*x,radius*y,radius*z,u,v);   // Position
+                m_geometry.AddVertex(SPHERE_RADIUS*x,SPHERE_RADIUS*y,SPHERE_RADIUS*z,u,v);   // Position
             }
         }
 

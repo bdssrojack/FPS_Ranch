@@ -30,11 +30,13 @@ public:
     // Set the position for the camera
     void SetCameraEyePosition(float x, float y, float z);
     // Returns the Camera X Position where the eye is 
+    glm::vec3 GetEyePosition();
     float GetEyeXPosition();
     // Returns the Camera Y Position where the eye is 
     float GetEyeYPosition();
     // Returns the Camera Z Position where the eye is 
     float GetEyeZPosition();
+    glm::vec3 GetViewDirection();
 	// Returns the X 'view' direction
     float GetViewXDirection();
     // Returns the Y 'view' direction

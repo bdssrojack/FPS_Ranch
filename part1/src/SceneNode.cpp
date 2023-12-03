@@ -124,7 +124,7 @@ std::vector<SceneNode*> SceneNode::GetChildren(){
 }
 
 bool SceneNode::isHit(Camera *camera) {
-	const float epsilon = 0.0001f;
+	const float epsilon = 0.0005f;
 
 	glm::vec3 camEyePos = camera->GetEyePosition();
 	SDL_Log("Eye position: X %.3f, Y %.3f, Z %.3f", camEyePos.x, camEyePos.y, camEyePos.z);

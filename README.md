@@ -1,23 +1,22 @@
 *TODO*: Please edit the following information in your final project
 
-## Title: FPS Training Range
+## Title: FPS Game Training Ranch
 
-## YouTube/Dropbox/Drive Link: Edit this line -- Put your link to your video(Preferably on YouTube) here (see deliverables).
+## YouTube Link: [FPS Game Training Ranch - CS5310 Fall23 Final Project Overview](https://youtu.be/uLaYnlE-ekA)
 
-## Edit this line: Put a few screenshots of your project here (see deliverables).
+## <img src="./part1/media/Screenshot.png" alt="OpenAI Logo" width="800">
 
 
 * Name and partners name(At most teams of 2 folks total)
-  * Team member 1: *Zhongshi Luo*
-  * Team member 2: *N/A*
-* How many hours did it take you to complete this final project? 
-* Did you collaborate or share ideas with any other students/TAs/Professors?
+  * Team member 1: **Zhongshi Luo**
+  * Team member 2: **N/A**
+* How many hours did it take you to complete this final project? **30h+**
+* Did you collaborate or share ideas with any other students/TAs/Professors? **No**
 * Did you use any external resources? 
-  * Note it is fair to utilize some tutorials--cite them here. You **must** add your own personal touch however!
-  * Starter code of A11
-  * [SDL Audio API tutorial](https://www.youtube.com/watch?v=hZ0TGCUcY2g)
-  * *edit this*
+  * **Starter code of A11**
+  * **[Mike's SDL Audio API tutorial](https://www.youtube.com/watch?v=hZ0TGCUcY2g)**
 * (Optional) What was the most interesting part of the Final Assignment? How could the instructor improve the final project?
+  * I really enjoyed the course in this semester, it opened a new gate of a field of computer science to me. Thank you Mike and TAs for doing all the things!
 
 ### Rubric
 

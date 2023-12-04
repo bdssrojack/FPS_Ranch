@@ -127,29 +127,29 @@ bool SceneNode::isHit(Camera *camera) {
 	const float epsilon = 0.0005f;
 
 	glm::vec3 camEyePos = camera->GetEyePosition();
-	SDL_Log("Eye position: X %.3f, Y %.3f, Z %.3f", camEyePos.x, camEyePos.y, camEyePos.z);
+	// SDL_Log("Eye position: X %.3f, Y %.3f, Z %.3f", camEyePos.x, camEyePos.y, camEyePos.z);
 	glm::vec3 camViewDir = camera->GetViewDirection();
-	SDL_Log("View direction: X %.3f, Y %.3f, Z %.3f", camViewDir.x, camViewDir.y, camViewDir.z);
+	// SDL_Log("View direction: X %.3f, Y %.3f, Z %.3f", camViewDir.x, camViewDir.y, camViewDir.z);
 
 	// vector from camera to the center of object
 	glm::vec3 camToCenter = glm::normalize(m_centerCoord - camEyePos);
-	SDL_Log("Camera to center vector: X %.3f, Y %.3f, Z %.3f", camToCenter.x, camToCenter.y, camToCenter.z);
+	// SDL_Log("Camera to center vector: X %.3f, Y %.3f, Z %.3f", camToCenter.x, camToCenter.y, camToCenter.z);
 
 	// if the dot of two vector is very alike, directly return true as it hit the target
 	float dot = glm::dot(camViewDir, camToCenter);
 	if(std::abs(dot - 1.0f) <= epsilon)
 		return true;
 	// degree from current aiming direction to center of object
-	SDL_Log("Camera view direction dot camera to center vector: %.10f", dot);
+	// SDL_Log("Camera view direction dot camera to center vector: %.10f", dot);
 	float radians = glm::acos(dot);
-	SDL_Log("Camera to center redians: %.10f", radians);
+	// SDL_Log("Camera to center redians: %.10f", radians);
 	float degrees = glm::degrees(radians);
-	SDL_Log("Camera to center degrees: %.10f", degrees);
+	// SDL_Log("Camera to center degrees: %.10f", degrees);
 
 	// Threshold of hit degree
 	float alpha = atan2(SPHERE_RADIUS, glm::distance(m_centerCoord, camEyePos));
 	float alphaDegrees = glm::degrees(alpha);
-	SDL_Log("Hit degrees: %.6f", alphaDegrees);
+	// SDL_Log("Hit degrees: %.6f", alphaDegrees);
 	
 	 
 	return (degrees < alphaDegrees + epsilon) || (std::abs(degrees - alphaDegrees) <= epsilon);

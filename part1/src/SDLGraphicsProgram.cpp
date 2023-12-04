@@ -13,42 +13,33 @@
 #include <vector>
 
 int SCREEN_WIDTH = 0, SCREEN_HEIGHT = 0;
-int RANCH_SCALE = 30;
+int RANCH_SCALE = 30, CEILING_HEIGHT = 10;
 int TARGET_NUM = 20;
 float CAMERA_SPEED = 0.1f;
-bool isSprinting = false, isCrouching = false;
+float STANDARD_EYE_HEIGHT = .5f, MAX_JUMP_HEIGHT = 1.8f, JUMP_VELOCITY = 0.08, CROUCHING_HEIGHT = -0.5f, FLOOR_Y_POSITION = -1.0f;
 
-Camera* camera;
+bool isSprinting = false, isCrouching = false, isJumping = false, isAscending = false;
+
+int hitTarget = 0;
+
+Camera *camera;
 Sound *gunshot;
 
-void resetFigure(Camera *camera) {
+void resetSpeed() {
     CAMERA_SPEED = 0.1f;
-    camera->SetCameraEyePosition(camera->GetEyeXPosition(), 0.5f, camera->GetEyeZPosition());
+}
+
+void resetFigure() {
+    resetSpeed();
+    camera->SetCameraEyePosition(camera->GetEyeXPosition(), STANDARD_EYE_HEIGHT, camera->GetEyeZPosition());
     isSprinting = false;
     isCrouching = false;
 }
 
-void fire(SceneNode *root, Camera *camera) {
-    gunshot->play();
-    // hitscan
-    std::vector<SceneNode*> children = root->GetChildren();
-    for(int i = 0; i < children.size(); i++){
-        SceneNode *target = children[i];
-        if(target->m_centerCoord.y < 0)
-            continue;
-        
-        if(target->isHit(camera)){
-            SDL_Log("target %u is hit", i);
-            target->GetLocalTransform().LoadIdentity();
-            target->GetLocalTransform().Translate(10.0f, -10.0f, 10.0f);
-            target->m_centerCoord = glm::vec3(10.0f, -10.0f, 10.0f);
-        }
-    }
-}
 
 void randomTranslate(SceneNode* node) {
     node->GetLocalTransform().LoadIdentity();
-    float centerX = rand()%RANCH_SCALE, centerY = rand()%10, centerZ = rand()%RANCH_SCALE;
+    float centerX = rand()%RANCH_SCALE, centerY = rand()%CEILING_HEIGHT, centerZ = rand()%RANCH_SCALE;
     node->m_centerCoord = glm::vec3(centerX, centerY, centerZ);
     node->GetLocalTransform().Translate(centerX, centerY, centerZ);
 }
@@ -72,6 +63,29 @@ void refreshTargets(SceneNode* root){
     std::vector<SceneNode*> children = root->GetChildren();
     for(int i = 0; i < children.size(); i++){
         randomTranslate(children[i]);
+    }
+    hitTarget = 0;
+}
+
+void fire(SceneNode *root) {
+    gunshot->play();
+    // hitscan
+    std::vector<SceneNode*> children = root->GetChildren();
+    for(int i = 0; i < children.size(); i++){
+        SceneNode *target = children[i];
+        if(target->m_centerCoord.y < 0)
+            continue;
+        
+        if(target->isHit(camera)){
+            SDL_Log("target %u is hit", i);
+            hitTarget++;
+            target->GetLocalTransform().LoadIdentity();
+            target->GetLocalTransform().Translate(10.0f, -10.0f, 10.0f);
+            target->m_centerCoord = glm::vec3(10.0f, -10.0f, 10.0f);
+            if(hitTarget == children.size()){
+                refreshTargets(root);
+            }
+        }
     }
 }
 
@@ -218,8 +232,8 @@ void SDLGraphicsProgram::Loop() {
 
     // Set a default position for our camera
     camera = m_renderer->GetCamera(0);
-    m_renderer->GetCamera(0)->SetCameraEyePosition(RANCH_SCALE/2.0f, 0.5f, RANCH_SCALE/2.0f);
-    m_renderer->GetCamera(0)->SetBoundary(RANCH_SCALE-1, RANCH_SCALE-1);
+    camera->SetCameraEyePosition(RANCH_SCALE/2.0f, STANDARD_EYE_HEIGHT, RANCH_SCALE/2.0f);
+    camera->SetBoundary(RANCH_SCALE-1, RANCH_SCALE-1);
 
     // Main loop flag
     // If this is quit = 'true' then the program terminates.
@@ -246,51 +260,54 @@ void SDLGraphicsProgram::Loop() {
                 // Handle mouse movements
                 mouseX += e.motion.xrel;
                 mouseY += e.motion.yrel;
-                m_renderer->GetCamera(0)->MouseLook(mouseX, mouseY);
+                camera->MouseLook(mouseX, mouseY);
             }
             if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {
                 // left click -- fire
-                fire(FloorNode, m_renderer->GetCamera(0));
+                fire(FloorNode);
             }
         } // End SDL_PollEvent loop.
 
         const Uint8 *keyboardState = SDL_GetKeyboardState(NULL);
         if (keyboardState[SDL_SCANCODE_W]) {
-            m_renderer->GetCamera(0)->MoveForward(CAMERA_SPEED);
+            camera->MoveForward(CAMERA_SPEED);
         } else if (keyboardState[SDL_SCANCODE_S]) {
-            m_renderer->GetCamera(0)->MoveBackward(CAMERA_SPEED);
+            camera->MoveBackward(CAMERA_SPEED);
         }
 
         if (keyboardState[SDL_SCANCODE_A]) {
-            m_renderer->GetCamera(0)->MoveLeft(CAMERA_SPEED);
+            camera->MoveLeft(CAMERA_SPEED);
         } else if (keyboardState[SDL_SCANCODE_D]) {
-            m_renderer->GetCamera(0)->MoveRight(CAMERA_SPEED);
+            camera->MoveRight(CAMERA_SPEED);
         }
 
-        if (keyboardState[SDL_SCANCODE_SPACE]) {
-            //TODO: jump
-            // if(isCrouching){
-            //     resetFigure(m_renderer->GetCamera(0));
-            // }
+        if (keyboardState[SDL_SCANCODE_SPACE]) { // Jump
+            if(!isJumping){ // only jump when not jumping
+                if(isCrouching){
+                    resetSpeed();
+                }
+                isJumping = true;
+                isAscending = true;
+            }
         }
-        if (keyboardState[SDL_SCANCODE_LSHIFT]) {
+        if (keyboardState[SDL_SCANCODE_LSHIFT]) { // Sprint
             SDL_Delay(100);
             if(isSprinting) {
-                resetFigure(m_renderer->GetCamera(0));
+                resetFigure();
             } else {
                 isSprinting = true;
-                m_renderer->GetCamera(0)->SetCameraEyePosition(m_renderer->GetCamera(0)->GetEyeXPosition(), 0.5f, m_renderer->GetCamera(0)->GetEyeZPosition());
+                camera->SetCameraEyePosition(camera->GetEyeXPosition(), STANDARD_EYE_HEIGHT, camera->GetEyeZPosition());
                 CAMERA_SPEED = 0.3f;
             }
         }
-        if (keyboardState[SDL_SCANCODE_LCTRL]) {
+        if (keyboardState[SDL_SCANCODE_LCTRL]) { // Crouch
             SDL_Delay(100);
             if(isCrouching) {
-                resetFigure(m_renderer->GetCamera(0));
+                resetFigure();
             } else {
                 isCrouching = true;
                 CAMERA_SPEED = 0.02f;
-                m_renderer->GetCamera(0)->SetCameraEyePosition(m_renderer->GetCamera(0)->GetEyeXPosition(), -0.5f, m_renderer->GetCamera(0)->GetEyeZPosition());
+                camera->SetCameraEyePosition(camera->GetEyeXPosition(), CROUCHING_HEIGHT, camera->GetEyeZPosition());
             }
         }
         if(keyboardState[SDL_SCANCODE_R]) {
@@ -305,8 +322,25 @@ void SDLGraphicsProgram::Loop() {
         // Render our scene using our selected renderer
         m_renderer->Render();
         // Delay to slow things down just a bit!
-        // SDL_Delay(25);  // TODO: You can change this or implement a frame
-        // independent movement method if you like.
+        SDL_Delay(16);  // You can change this or implement a frame independent movement method if you like.
+        if(isJumping) {
+            float currentYPosition = camera->GetEyeYPosition();
+            
+            if(isAscending && currentYPosition < MAX_JUMP_HEIGHT){
+                camera->SetCameraEyePosition(camera->GetEyeXPosition(), currentYPosition + JUMP_VELOCITY, camera->GetEyeZPosition());
+            }
+            if(abs(currentYPosition - MAX_JUMP_HEIGHT) < JUMP_VELOCITY){
+                isAscending = false;
+            }
+            
+            if(!isAscending && currentYPosition > STANDARD_EYE_HEIGHT){
+                camera->SetCameraEyePosition(camera->GetEyeXPosition(), currentYPosition - JUMP_VELOCITY, camera->GetEyeZPosition());
+            }
+            if(abs(currentYPosition - STANDARD_EYE_HEIGHT) < JUMP_VELOCITY){
+                isJumping = false;
+            }
+            
+        }
         DrawCrosshair(crosshairNode);
         //Update screen of our specified window
         SDL_GL_SwapWindow(GetSDLWindow());

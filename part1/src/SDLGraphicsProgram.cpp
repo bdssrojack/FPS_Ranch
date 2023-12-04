@@ -15,8 +15,18 @@
 int SCREEN_WIDTH = 0, SCREEN_HEIGHT = 0;
 int RANCH_SCALE = 30;
 int TARGET_NUM = 20;
+float CAMERA_SPEED = 0.1f;
+bool isSprinting = false, isCrouching = false;
 
+Camera* camera;
 Sound *gunshot;
+
+void resetFigure(Camera *camera) {
+    CAMERA_SPEED = 0.1f;
+    camera->SetCameraEyePosition(camera->GetEyeXPosition(), 0.5f, camera->GetEyeZPosition());
+    isSprinting = false;
+    isCrouching = false;
+}
 
 void fire(SceneNode *root, Camera *camera) {
     gunshot->play();
@@ -207,6 +217,7 @@ void SDLGraphicsProgram::Loop() {
     m_renderer->setRoot(FloorNode);
 
     // Set a default position for our camera
+    camera = m_renderer->GetCamera(0);
     m_renderer->GetCamera(0)->SetCameraEyePosition(RANCH_SCALE/2.0f, 0.5f, RANCH_SCALE/2.0f);
     m_renderer->GetCamera(0)->SetBoundary(RANCH_SCALE-1, RANCH_SCALE-1);
 
@@ -219,9 +230,6 @@ void SDLGraphicsProgram::Loop() {
     // Enable text input
     SDL_StartTextInput();
 
-    // Set the camera speed for how fast we move.
-    float cameraSpeed = 0.1f;
-    bool sprint = false;
     int mouseX = 0, mouseY = 0;
 
     // While application is running
@@ -248,25 +256,42 @@ void SDLGraphicsProgram::Loop() {
 
         const Uint8 *keyboardState = SDL_GetKeyboardState(NULL);
         if (keyboardState[SDL_SCANCODE_W]) {
-            m_renderer->GetCamera(0)->MoveForward(cameraSpeed);
+            m_renderer->GetCamera(0)->MoveForward(CAMERA_SPEED);
         } else if (keyboardState[SDL_SCANCODE_S]) {
-            m_renderer->GetCamera(0)->MoveBackward(cameraSpeed);
+            m_renderer->GetCamera(0)->MoveBackward(CAMERA_SPEED);
         }
 
         if (keyboardState[SDL_SCANCODE_A]) {
-            m_renderer->GetCamera(0)->MoveLeft(cameraSpeed);
+            m_renderer->GetCamera(0)->MoveLeft(CAMERA_SPEED);
         } else if (keyboardState[SDL_SCANCODE_D]) {
-            m_renderer->GetCamera(0)->MoveRight(cameraSpeed);
+            m_renderer->GetCamera(0)->MoveRight(CAMERA_SPEED);
         }
 
         if (keyboardState[SDL_SCANCODE_SPACE]) {
             //TODO: jump
+            // if(isCrouching){
+            //     resetFigure(m_renderer->GetCamera(0));
+            // }
         }
         if (keyboardState[SDL_SCANCODE_LSHIFT]) {
-            //TODO: sprint
+            SDL_Delay(100);
+            if(isSprinting) {
+                resetFigure(m_renderer->GetCamera(0));
+            } else {
+                isSprinting = true;
+                m_renderer->GetCamera(0)->SetCameraEyePosition(m_renderer->GetCamera(0)->GetEyeXPosition(), 0.5f, m_renderer->GetCamera(0)->GetEyeZPosition());
+                CAMERA_SPEED = 0.3f;
+            }
         }
         if (keyboardState[SDL_SCANCODE_LCTRL]) {
-            //TODO: crouch
+            SDL_Delay(100);
+            if(isCrouching) {
+                resetFigure(m_renderer->GetCamera(0));
+            } else {
+                isCrouching = true;
+                CAMERA_SPEED = 0.02f;
+                m_renderer->GetCamera(0)->SetCameraEyePosition(m_renderer->GetCamera(0)->GetEyeXPosition(), -0.5f, m_renderer->GetCamera(0)->GetEyeZPosition());
+            }
         }
         if(keyboardState[SDL_SCANCODE_R]) {
             SDL_Delay(100);

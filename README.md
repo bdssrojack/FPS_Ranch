@@ -4,7 +4,7 @@
 
 ## YouTube Link: [FPS Game Training Ranch - CS5310 Fall23 Final Project Overview](https://youtu.be/uLaYnlE-ekA)
 
-## <img src="./part1/media/Screenshot.png" alt="OpenAI Logo" width="800">
+## <img src="./media/Screenshot.png" alt="OpenAI Logo" width="800">
 
 
 * Name and partners name(At most teams of 2 folks total)
